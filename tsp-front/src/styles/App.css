@@ -1,0 +1,108 @@
+/* 
+
+Styles here
+
+Reminder: u can create stylesheets for each component app
+
+*/
+
+/* 
+
+vars
+
+*/
+
+:root {
+    --white: #FFFFFF;
+    --nav-black: #23242A;
+    --soft-purple: #9FA8E0;
+    --soft-purple-alpha: #9fa8e050;
+    --nav-button: #FFFFFF;
+    --nav-button-active: #D197FA;
+    --light-blue: #CEE7EA;
+    --light-green: #CDE9D4;
+    --light-red: #FF3333;
+    --gray: #6F6F6F;
+    --loading: #9FA8E0;
+    --shadow-color: #242424;
+
+    --100vh: 0px;
+}
+
+
+
+/*
+
+Reset styles
+
+*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html {
+    font-size: 62.5%;
+    background-color: #000000ee;
+}
+
+body {
+    background-color: #000000;
+    font-family: "Libre Franklin";
+    min-height: var(--100vh);
+    color: var(--white);
+}
+
+body.nopadding {
+    padding: 0;
+}
+
+.app {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.gm-style-cc { display:none; }
+
+.button {
+    width: 120px;
+    height: 38px;
+    font-family: "Libre Franklin";
+    font-size: 1.8rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 20px;
+    background-color: var(--light-green);
+    color: #000000;
+}
+
+.loading {
+    position: fixed;
+    z-index: 3;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: var(--100vh);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ffffff3a;
+    opacity: 0;
+    transition: opacity 300s;
+}
+
+.loading.active {
+    opacity: 1;
+    transition: opacity 300s;
+}
+
+.loading .icon {
+    font-size: 6rem;
+    color: var(--loading);
+}

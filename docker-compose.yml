@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./tsp
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db/tsp_db
+      - PORT=8000
+      - SECRET_JWT=secret_key_change_me
+      - FRONTEND_URL=http://localhost:3000
+      - COORDINATES_FILE=nodes.txt
+      - ARCS_FILE=edges.txt
+      - ROCKET_ADDRESS=0.0.0.0
+    volumes:
+      - ./tsp/nodes.txt:/app/nodes.txt
+      - ./tsp/edges.txt:/app/edges.txt
+    depends_on:
+      - db
+    networks:
+      - tsp-network
+    restart: on-failure
+    command: >
+      /bin/sh -c "
+      until diesel migration run --database-url postgres://postgres:password@db/tsp_db; do
+        echo 'Migration failed, retrying in 5s...';
+        sleep 5;
+      done;
+      ./tsp
+      "
+
+  frontend:
+    build:
+      context: ./tsp-front
+      dockerfile: Dockerfile
+      args:
+        - VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY}
+        - VITE_ENDPOINT=http://localhost:8000
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - tsp-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=tsp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tsp-network
+
+networks:
+  tsp-network:
+
+volumes:
+  postgres_data:

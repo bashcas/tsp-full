@@ -1,0 +1,25 @@
+.tripMap {
+    width: 100%;
+    height: var(--100vh);
+    position: relative;
+}
+
+.tripMap-container {
+    width: 100%;
+    height: var(--100vh);
+}
+
+.tripMap .trip__title {
+    display: flex;
+}
+
+.map__header .trip__title span {
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    font-size: 2.8rem;
+    font-family: "Libre Franklin";
+    font-weight: 400;
+    text-align: right;
+    color: var(--light-blue);
+}
