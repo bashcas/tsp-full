@@ -1,7 +1,7 @@
 use rocket::{post, http::Status, response::status::Custom};
 use rocket::serde::{Deserialize, json::Json};
 use crate::db::users::get_user;
-use crate::utils::{hash::hash_password, response::*, claims::Claims};
+use crate::utils::{hash::hash_password, response::*, claims::Claims, rate_limit::RateLimitGuard};
 use jsonwebtoken::{encode, Header, EncodingKey, get_current_timestamp};
 use dotenvy::dotenv;
 use std::env;
@@ -14,7 +14,10 @@ pub struct Body<'r> {
 }
 
 #[post("/", data="<body>")]
-pub fn login(body: Json<Body<'_>>) -> Result<Json<OkResponse>, Custom<Json<ErrorResponse>>> {
+pub fn login(
+    _rate_limit: RateLimitGuard,
+    body: Json<Body<'_>>
+) -> Result<Json<OkResponse>, Custom<Json<ErrorResponse>>> {
     let query_response = get_user(body.email);
     let token: String;
     

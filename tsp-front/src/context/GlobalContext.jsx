@@ -25,7 +25,7 @@ const GlobalContextProvider = ( {children}) => {
 
 
     const endpoint = import.meta.env.VITE_ENDPOINT;
-    console.log(endpoint.includes("REACT"))
+    
     const url_paths = {
         login: "/login",
         signup: "/signup",

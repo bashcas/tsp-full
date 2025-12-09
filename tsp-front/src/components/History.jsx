@@ -27,8 +27,7 @@ const History = () => {
                 "Authorization": `Bearer ${local.token}`,
             }
         };
-        console.log(endpoint)
-        // console.log(endpoint + url_paths.history + `${page}`)
+        
         const { status, response} = await get(endpoint + url_paths.history + `${page}`, config);
         if(status != 200) {
             setMessage(response.message);

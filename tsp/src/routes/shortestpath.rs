@@ -26,6 +26,26 @@ pub fn shortestpath(
 ) -> Result<Json<Path>, Custom<Json<ErrorResponse>>> {
     let token_raw = token_raw.tkn.split(' ').collect::<Vec<&str>>()[1];
     if authenticate(token_raw) {
+        // Validar número de ubicaciones para prevenir DoS
+        if data.locations.len() < 2 {
+            return Err(Custom(Status::BadRequest, Json(ErrorResponse {
+                message: "At least 2 locations are required".to_string(),
+            })));
+        }
+        
+        if data.locations.len() > 10 {
+            return Err(Custom(Status::BadRequest, Json(ErrorResponse {
+                message: "Maximum 10 locations allowed to prevent resource exhaustion".to_string(),
+            })));
+        }
+        
+        // Validar longitud del título
+        if data.title.len() < 1 || data.title.len() > 100 {
+            return Err(Custom(Status::BadRequest, Json(ErrorResponse {
+                message: "Title must be between 1 and 100 characters".to_string(),
+            })));
+        }
+        
         let mut nodes: Vec<Coordinate> = Vec::new();
         for i in 0..data.locations.len() {
             data.locations[i].coordinates.id = data.locations[i].id;

@@ -8,6 +8,7 @@ pub mod salt;
 pub mod trip;
 pub mod path;
 pub mod user;
+pub mod rate_limit;
 
 pub use crate::ds::{graph::Graph, kdtree::KdTree};
 use coordinate::Coordinate;

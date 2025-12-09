@@ -3,7 +3,7 @@ use regex::Regex;
 use rocket::{post, http::Status, response::status::Custom};
 use rocket::serde::{Deserialize, json::Json};
 use crate::db::users::create_user;
-use crate::utils::{salt::gen_salt, hash::hash_password, response::*, claims::Claims};
+use crate::utils::{salt::gen_salt, hash::hash_password, response::*, claims::Claims, rate_limit::RateLimitGuard};
 use jsonwebtoken::{encode, Header, EncodingKey, get_current_timestamp};
 use dotenvy::dotenv;
 use std::env;
@@ -22,13 +22,55 @@ fn check_email(email: &str) -> bool {
     email_regex.is_match(email)
 }
 
+fn validate_password_strength(password: &str) -> bool {
+    // Mínimo 8 caracteres, al menos una mayúscula, una minúscula y un número
+    if password.len() < 8 {
+        return false;
+    }
+    let has_uppercase = password.chars().any(|c| c.is_uppercase());
+    let has_lowercase = password.chars().any(|c| c.is_lowercase());
+    let has_digit = password.chars().any(|c| c.is_numeric());
+    
+    has_uppercase && has_lowercase && has_digit
+}
+
+fn validate_username(username: &str) -> bool {
+    // Solo alfanuméricos, guiones y guiones bajos
+    let username_regex = Regex::new(r"^[a-zA-Z0-9_-]{3,50}$").unwrap();
+    username_regex.is_match(username)
+}
+
 #[post("/", data="<body>")]
-pub fn sign_up(body: Json<Body<'_>>) -> Result<Json<OkResponse>, Custom<Json<ErrorResponse>>>{
+pub fn sign_up(
+    _rate_limit: RateLimitGuard,
+    body: Json<Body<'_>>
+) -> Result<Json<OkResponse>, Custom<Json<ErrorResponse>>>{
+    // Validar longitud del nombre
+    if body.name.len() < 2 || body.name.len() > 100 {
+        return Err(Custom(Status::BadRequest, Json(ErrorResponse {
+            message: "Name must be between 2 and 100 characters".to_string()
+        })));
+    }
+    
+    // Validar username
+    if !validate_username(body.username) {
+        return Err(Custom(Status::BadRequest, Json(ErrorResponse {
+            message: "Username must be 3-50 characters (alphanumeric, hyphens, underscores only)".to_string()
+        })));
+    }
+    
+    // Validar email
     if !check_email(body.email) {
-        let response = ErrorResponse {
-            message: "Wrong data. Please check your data".to_string()
-        };
-        return Err(Custom(Status::BadRequest, Json(response)))
+        return Err(Custom(Status::BadRequest, Json(ErrorResponse {
+            message: "Invalid email format".to_string()
+        })));
+    }
+    
+    // Validar fortaleza de contraseña
+    if !validate_password_strength(body.password) {
+        return Err(Custom(Status::BadRequest, Json(ErrorResponse {
+            message: "Password must be at least 8 characters with uppercase, lowercase, and numbers".to_string()
+        })));
     }
     
     let salt: String = gen_salt();
@@ -63,27 +105,15 @@ pub fn sign_up(body: Json<Body<'_>>) -> Result<Json<OkResponse>, Custom<Json<Err
                 Ok(Json(response))
             },
             Err(error) => {
-                let message: String;
-                println!("obtuvimos el error: {:?}", error);
+                // Mensaje genérico para no revelar si username/email existe
                 let error_raw = format!("{:?}", error);
-                if error_raw.contains("UniqueViolation") {
-                    if error_raw.contains("username") {
-                        message = "username already used".to_string();
-                    } else if error_raw.contains("email") {
-                        message = "email already used".to_string();
-                    } else {
-                        message = "Unexpected error".to_string();
-                    }
-
+                let message = if error_raw.contains("UniqueViolation") {
+                    "Registration failed. Username or email might already be in use.".to_string()
                 } else {
-                    message = "Unexpected error".to_string();
-                }
-                println!("obtuvimos el error: {:?}", error_raw.contains("username"));
-
-    
-                let response = ErrorResponse {
-                    message
+                    "Registration failed. Please try again later.".to_string()
                 };
+    
+                let response = ErrorResponse { message };
                 Err(Custom(Status::BadRequest, Json(response)))
             },
         

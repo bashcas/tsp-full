@@ -2,6 +2,27 @@
 
 This project is a Traveling Salesman Problem (TSP) solver with a Rust backend and a React frontend. It uses OpenStreetMap data to calculate routes.
 
+## 🔒 Security Status
+
+**Last Security Update**: December 9, 2025  
+**Security Score**: 5.9/10 🟡 (Previously: 4.5/10 🔴)  
+**Recent Improvements**: ✅ Rate Limiting, ✅ Input Validation, ✅ DoS Prevention
+
+### Recent Security Enhancements
+- ✅ **Rate Limiting**: 5 attempts/minute on `/login` and `/signup`
+- ✅ **Password Strength**: Minimum 8 characters with uppercase, lowercase, and numbers
+- ✅ **Input Validation**: Username, email, and field length validation
+- ✅ **DoS Prevention**: Maximum 10 locations for TSP computation
+- ✅ **Generic Error Messages**: Prevents user enumeration
+
+📚 **Documentation**:
+- [SECURITY_AUDIT.md](./SECURITY_AUDIT.md) - Complete security audit with attack scenarios
+- [QUICK_SECURITY_FIXES.md](./QUICK_SECURITY_FIXES.md) - Quick implementation guide
+- [IMPLEMENTATION_DOCS.md](./IMPLEMENTATION_DOCS.md) - Technical documentation
+- [STATUS.md](./STATUS.md) - Current implementation status
+
+---
+
 ## Prerequisites
 
 -   [Docker](https://www.docker.com/) and Docker Compose
