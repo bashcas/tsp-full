@@ -3,22 +3,31 @@ FROM rust:slim-bookworm as builder
 
 WORKDIR /app
 
-# Copy the tsp directory (build context should be repo root)
-# Note: LFS files must be pulled BEFORE Docker build (see Render.com build command)
-COPY tsp/ tsp/
+# Install Git LFS
+RUN apt-get update && apt-get install -y git git-lfs && rm -rf /var/lib/apt/lists/*
+RUN git lfs install
 
-# Verify LFS files were pulled (not pointer files) before moving to tsp directory
-RUN if head -1 tsp/nodes.txt 2>/dev/null | grep -q "version https://git-lfs"; then \
-        echo "ERROR: nodes.txt is still an LFS pointer file!"; \
-        echo "LFS files must be pulled before Docker build. Add to Render.com build command:"; \
-        echo "  git lfs install && git lfs pull"; \
-        exit 1; \
-    fi && \
-    if head -1 tsp/edges.txt 2>/dev/null | grep -q "version https://git-lfs"; then \
-        echo "ERROR: edges.txt is still an LFS pointer file!"; \
-        echo "LFS files must be pulled before Docker build. Add to Render.com build command:"; \
-        echo "  git lfs install && git lfs pull"; \
-        exit 1; \
+# Copy the entire repository (including .git if available)
+# This allows us to pull LFS files during the build
+COPY . .
+
+# Try to pull LFS files if .git exists, otherwise check if files are already pulled
+RUN if [ -d .git ]; then \
+        echo "Found .git, pulling LFS files..."; \
+        git lfs pull; \
+    else \
+        echo "Warning: .git not found. Checking if LFS files are already pulled..."; \
+        if head -1 tsp/nodes.txt 2>/dev/null | grep -q "version https://git-lfs"; then \
+            echo "ERROR: nodes.txt is still an LFS pointer file and .git is not available!"; \
+            echo "Please ensure LFS files are pulled before Docker build, or .git is included in build context."; \
+            exit 1; \
+        fi; \
+        if head -1 tsp/edges.txt 2>/dev/null | grep -q "version https://git-lfs"; then \
+            echo "ERROR: edges.txt is still an LFS pointer file and .git is not available!"; \
+            echo "Please ensure LFS files are pulled before Docker build, or .git is included in build context."; \
+            exit 1; \
+        fi; \
+        echo "LFS files appear to be already pulled."; \
     fi
 
 # Move to tsp directory for building
