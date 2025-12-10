@@ -3,19 +3,23 @@ FROM rust:slim-bookworm as builder
 
 WORKDIR /app
 
-# Install Git LFS first
-RUN apt-get update && apt-get install -y git git-lfs && rm -rf /var/lib/apt/lists/*
-RUN git lfs install
-
-# Copy .git directory and .gitattributes (needed for LFS)
-COPY .git .git
-COPY .gitattributes .gitattributes
-
 # Copy the tsp directory (build context should be repo root)
+# Note: LFS files must be pulled BEFORE Docker build (see Render.com build command)
 COPY tsp/ tsp/
 
-# Pull LFS files (they will be pulled to tsp/nodes.txt and tsp/edges.txt)
-RUN git lfs pull
+# Verify LFS files were pulled (not pointer files) before moving to tsp directory
+RUN if head -1 tsp/nodes.txt 2>/dev/null | grep -q "version https://git-lfs"; then \
+        echo "ERROR: nodes.txt is still an LFS pointer file!"; \
+        echo "LFS files must be pulled before Docker build. Add to Render.com build command:"; \
+        echo "  git lfs install && git lfs pull"; \
+        exit 1; \
+    fi && \
+    if head -1 tsp/edges.txt 2>/dev/null | grep -q "version https://git-lfs"; then \
+        echo "ERROR: edges.txt is still an LFS pointer file!"; \
+        echo "LFS files must be pulled before Docker build. Add to Render.com build command:"; \
+        echo "  git lfs install && git lfs pull"; \
+        exit 1; \
+    fi
 
 # Move to tsp directory for building
 WORKDIR /app/tsp
