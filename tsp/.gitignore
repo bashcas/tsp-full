@@ -10,7 +10,7 @@
 
 .devcontainer
 test.*
-.txt
+*.txt
 
 # rocket local settings
 Rocket.toml
