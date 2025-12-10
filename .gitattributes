@@ -1,2 +1,0 @@
-tsp/edges.txt filter=lfs diff=lfs merge=lfs -text
-tsp/nodes.txt filter=lfs diff=lfs merge=lfs -text
